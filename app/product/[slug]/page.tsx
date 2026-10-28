@@ -1,24 +1,11 @@
 import Link from "next/link";
+import { jewelleryProducts } from "@/lib/jewelleryData";
 
-const product = {
-  slug: "pearl-drop-set",
-  name: "Pearl Drop Set",
-  category: "Earrings",
-  price: 1999,
-  originalPrice: 2999,
-  badge: "Best Seller",
-  material: "Gold plated brass",
-  image: "https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=900&q=80",
-  gallery: [
-    "https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=900&q=80",
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=900&q=80",
-    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
-  ],
-  description: "Soft pearl accents, lightweight comfort, and an elegant everyday shine for festive evenings.",
-  colors: ["Rose Gold", "Silver", "Champagne"],
-};
+export const dynamic = "force-dynamic";
 
-const ProductDetailPage = () => {
+const ProductDetailPage = ({ params }: { params: { slug: string } }) => {
+  const product = jewelleryProducts.find((item) => item.slug === params.slug) ?? jewelleryProducts[0];
+
   return (
     <>
       <style>{`
@@ -65,12 +52,12 @@ const ProductDetailPage = () => {
 
             <p className="desc">{product.description}</p>
 
-            <div style={{ marginTop: 20, fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: '#8c6977' }}>
+            <div style={{ marginTop: 20, fontSize: 12, letterSpacing: 2, textTransform: "uppercase", color: "#8c6977" }}>
               Finish: {product.material}
             </div>
 
             <div style={{ marginTop: 22 }}>
-              <div style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: '#8c6977' }}>Available shades</div>
+              <div style={{ fontSize: 12, letterSpacing: 2, textTransform: "uppercase", color: "#8c6977" }}>Available shades</div>
               <div className="swatches">
                 {product.colors.map((color) => (
                   <span key={color} className="swatch">{color}</span>
@@ -79,7 +66,7 @@ const ProductDetailPage = () => {
             </div>
 
             <div className="cta-row">
-              <button className="primary">Add to bag</button>
+              <Link href="/cart" style={{ textDecoration: "none" }}><button className="primary">Add to bag</button></Link>
               <button className="secondary">Add to wishlist</button>
             </div>
 
@@ -94,3 +81,41 @@ const ProductDetailPage = () => {
 };
 
 export default ProductDetailPage;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
