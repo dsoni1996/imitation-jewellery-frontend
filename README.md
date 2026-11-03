@@ -1,23 +1,32 @@
 # Aarohi Style — imitation jewellery storefront
 
-A small Next.js storefront for browsing the sample catalogue, searching/filtering products, and managing a cart and wishlist in the customer's browser. The current checkout hands the order details to the store through WhatsApp; it does not collect card details or charge a customer online.
+Next.js 15 storefront for the Aarohi imitation jewellery catalogue. Product listing/detail pages use the backend when `NEXT_PUBLIC_API_URL` is configured, and show local demo products when it is not configured. The existing admin app (`jewellery-admin`) manages products and orders through the same backend.
 
-## Run locally
+## Run the apps locally
 
-1. Install Node.js 20 or newer.
-2. Run `npm install`.
-3. Copy `.env.example` to `.env.local` and replace `NEXT_PUBLIC_WHATSAPP_NUMBER` with the store's WhatsApp number, including country code and digits only (India example: `919876543210`).
-4. Run `npm run dev`, then open `http://localhost:3000`.
-5. Check the production build with `npm run build` and serve it using `npm start`.
+### Backend
 
-Deploy the Next.js app to a Node-compatible host (for example Vercel). Add the same environment variable in the hosting provider's project settings and redeploy after changing it. Never add private API keys to a `NEXT_PUBLIC_` variable.
+1. In `jewellery-backend`, copy `.env.example` to `.env` and set MongoDB, JWT, and Cloudinary credentials. Use newly rotated Cloudinary credentials; never commit secrets.
+2. Start MongoDB, then run `npm install` and `npm run dev` in the backend.
+3. Health check: `http://localhost:5000/api/health`.
+4. Do not run `npm run seed` against a production database; the existing seed script deletes current products and related seed data.
 
-## Before taking real orders
+### Admin
 
-- Replace the sample products, prices, descriptions, and externally hosted sample images in `lib/jewelleryData.js` with your actual inventory and product photography.
-- Set and test the correct store WhatsApp number. Checkout opens a prefilled message; the customer must send it and the store must confirm stock, delivery charges, and the order.
-- Choose and clearly publish your actual shipping, returns/refunds, privacy, and terms policies, plus business contact details. Remove any promise that does not match your operations.
-- The current checkout is an order-request/contact flow, not a payment gateway, inventory reservation, automated order database, or shipping integration. Add a trusted payment provider and server-side order handling before accepting online prepayments or needing automated fulfilment.
-- Verify the deployed site, mobile layouts, product photos, checkout message, and contact channel before sharing it with customers.
+Run `npm install` and `npm run dev` in `jewellery-admin`. Its `.env.local` should set `NEXT_PUBLIC_API_URL=http://localhost:5000/api`. The admin login and product-management flow uses the backend JWT and API.
 
-Cart and wishlist are stored in the customer's browser (`localStorage`); they are not shared across devices and do not create an order until the customer contacts the store.
+### Storefront
+
+1. Copy this repo's `.env.example` to `.env.local`.
+2. Set `NEXT_PUBLIC_API_URL=http://localhost:5000/api` and your WhatsApp business number (country code + digits, no plus sign) in `NEXT_PUBLIC_WHATSAPP_NUMBER`.
+3. Run `npm install`, `npm run dev` and open `http://localhost:3000`.
+
+## API integration notes
+
+The storefront calls the public backend endpoints `GET /api/products` and `GET /api/products/:slug`. It requests in-stock products with `materialType=Other`, because the backend schema represents imitation jewellery as `materialType: Other`. Product fields from the API are normalized into the existing storefront card/detail shape. With no API URL configured, the site uses its local demo catalogue.
+
+To populate imitation products in the admin, mark them `Other`, use supported category values (for example `Ring`, `Earring`, `Necklace`, `Bangle`, `Pendant`), enter the selling price and images, and keep `isActive`/inventory correct. Existing seed data represents gold/silver jewellery, not the imitation catalogue.
+
+The current checkout is a WhatsApp order-request flow, not an online payment gateway or automated order database. The backend cart, wishlist, and order endpoints require login; this storefront does not yet connect that authenticated checkout flow. Configure the backend CORS allowlist for the exact storefront and admin origins before browser API calls. Set your actual shipping, returns, privacy, terms, address, and contact details before launch.
+
+Run `npm run build` and test product listing/detail, WhatsApp checkout, mobile layout, and deployed API connectivity before accepting orders.
