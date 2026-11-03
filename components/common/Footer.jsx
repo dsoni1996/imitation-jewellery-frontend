@@ -1,80 +1,23 @@
 import Link from "next/link";
 
-const footerLinks = {
-  Shop: [
-    { label: "New Arrivals", href: "/listing" },
-    { label: "Rings", href: "/listing?category=Rings" },
-    { label: "Earrings", href: "/listing?category=Earrings" },
-    { label: "Bestsellers", href: "/listing?sort=bestseller" },
-  ],
-  Help: [
-    { label: "Track Order", href: "/track-order" },
-    { label: "Shipping", href: "/shipping" },
-    { label: "Returns", href: "/returns" },
-    { label: "FAQ", href: "/faq" },
-  ],
-  Company: [
-    { label: "About Us", href: "/about" },
-    { label: "Careers", href: "/careers" },
-    { label: "Contact", href: "/contact" },
-    { label: "Stores", href: "/stores" },
-  ],
-};
+const footerGroups = [
+  { heading: "Shop", links: [{ label: "All jewellery", href: "/listing" }, { label: "Earrings", href: "/listing?category=Earrings" }, { label: "Necklaces", href: "/listing?category=Necklaces" }, { label: "Rings", href: "/listing?category=Rings" }, { label: "Jewellery sets", href: "/listing?category=Sets" }] },
+  { heading: "Your order", links: [{ label: "Shopping bag", href: "/cart" }, { label: "Wishlist", href: "/wishlist" }, { label: "Checkout / order on WhatsApp", href: "/checkout" }] },
+  { heading: "Aarohi", links: [{ label: "Our story", href: "/about" }, { label: "Contact us", href: "/contact" }] },
+];
 
-const Footer = () => (
-  <footer style={{ background: "#1f1b1c", color: "#f8e2ea", marginTop: 40 }}>
-    <style>{`
-      .ft-shell { max-width: 1360px; margin: 0 auto; padding: 50px 24px 24px; }
-      .ft-top { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 28px; }
-      .brand { font-family: 'Cormorant Garamond', serif; font-size: 2.5rem; letter-spacing: 4px; color: #fff; }
-      .brand span { color: var(--gold); }
-      .tagline { color: #d8c1c7; line-height: 1.7; max-width: 280px; margin-top: 16px; }
-      .ft-col-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 18px; }
-      .ft-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
-      .ft-list a { color: #d8c1c7; font-size: 14px; }
-      .ft-bottom { border-top: 1px solid rgba(255,255,255,0.1); margin-top: 26px; padding-top: 22px; display: flex; justify-content: space-between; gap: 18px; align-items: center; flex-wrap: wrap; }
-      .ft-copy { color: #cbadb4; font-size: 12px; }
-      .badge-row { display: flex; gap: 8px; flex-wrap: wrap; }
-      .badge { padding: 6px 10px; border: 1px solid rgba(255,255,255,0.08); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #f1dbe2; }
-      @media (max-width: 760px) {
-        .ft-top { grid-template-columns: 1fr 1fr; }
-      }
-      @media (max-width: 520px) {
-        .ft-top { grid-template-columns: 1fr; }
-      }
-    `}</style>
-
-    <div className="ft-shell">
-      <div className="ft-top">
-        <div>
-          <div className="brand">Aarohi <span>Style</span></div>
-          <p className="tagline">
-            Thoughtful imitation jewellery for festive moments, gifting, everyday sparkle, and statement looks.
-          </p>
-        </div>
-
-        {Object.entries(footerLinks).map(([heading, items]) => (
-          <div key={heading}>
-            <div className="ft-col-title">{heading}</div>
-            <ul className="ft-list">
-              {items.map((item) => (
-                <li key={item.label}><Link href={item.href}>{item.label}</Link></li>
-              ))}
-            </ul>
-          </div>
-        ))}
+export default function Footer() {
+  return <footer className="site-footer">
+    <div className="footer-shell">
+      <div className="footer-top">
+        <div className="footer-brand"><Link href="/" className="brand">AAROHI <span>STYLE</span></Link><p>Imitation jewellery for the everyday plans and special moments that feel like you.</p><a className="contact-link" href="mailto:hello@aarohi.style">hello@aarohi.style</a></div>
+        {footerGroups.map((group) => <div className="footer-group" key={group.heading}><h2>{group.heading}</h2><ul>{group.links.map((link) => <li key={link.href}><Link href={link.href}>{link.label}</Link></li>)}</ul></div>)}
       </div>
-
-      <div className="ft-bottom">
-        <div className="ft-copy">© 2025 Aarohi Style. All rights reserved.</div>
-        <div className="badge-row">
-          <span className="badge">Secure Pay</span>
-          <span className="badge">Easy Returns</span>
-          <span className="badge">Fast Delivery</span>
-        </div>
-      </div>
+      <div className="footer-bottom"><span>© {new Date().getFullYear()} Aarohi Style. All rights reserved.</span><span>Orders are confirmed directly with our team before payment.</span></div>
     </div>
-  </footer>
-);
-
-export default Footer;
+    <style jsx>{`
+      .site-footer{margin-top:0;background:#302721;color:#f4ede5}.footer-shell{max-width:1320px;margin:auto;padding:48px 26px 20px}.footer-top{display:grid;grid-template-columns:1.7fr repeat(3,1fr);gap:30px}.footer-brand .brand{font-family:'Cormorant Garamond',serif;font-size:29px;letter-spacing:3px;color:#fff}.footer-brand .brand span{color:#d9b677}.footer-brand p{max-width:300px;color:#d4c8bd;font-size:12px;line-height:1.7;margin:12px 0}.contact-link{font-size:11px;color:#e3c991}.footer-group h2{font-family:'Jost',sans-serif;font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:#d9b677;margin:5px 0 15px}.footer-group ul{list-style:none;padding:0;margin:0;display:grid;gap:10px}.footer-group a{font-size:12px;color:#e3d9d0}.footer-group a:hover,.contact-link:hover{color:#fff}.footer-bottom{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.14);margin-top:30px;padding-top:16px;color:#cbbfb4;font-size:10px}
+      @media(max-width:720px){.footer-shell{padding:38px 20px 18px}.footer-top{grid-template-columns:1fr 1fr;gap:26px 18px}.footer-brand{grid-column:1/-1}.footer-bottom{line-height:1.6}}
+    `}</style>
+  </footer>;
+}
