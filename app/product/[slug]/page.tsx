@@ -1,121 +1,28 @@
+"use client";
+
 import Link from "next/link";
+import { Heart, Minus, Plus, ShieldCheck, Truck } from "lucide-react";
+import { useParams } from "next/navigation";
+import { useState } from "react";
 import { jewelleryProducts } from "@/lib/jewelleryData";
+import { useCartStore } from "@/context/CartContext";
 
-export const dynamic = "force-dynamic";
-
-const ProductDetailPage = ({ params }: { params: { slug: string } }) => {
-  const product = jewelleryProducts.find((item) => item.slug === params.slug) ?? jewelleryProducts[0];
-
-  return (
-    <>
-      <style>{`
-        .detail-shell { max-width: 1320px; margin: 0 auto; padding: 40px 20px 90px; }
-        .detail-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 36px; }
-        .gallery { display: grid; grid-template-columns: 120px 1fr; gap: 18px; }
-        .thumbs { display: grid; gap: 12px; }
-        .thumbs img { width: 100%; height: 110px; object-fit: cover; border-radius: 12px; border: 1px solid #f0dfe7; }
-        .main-image { width: 100%; min-height: 620px; object-fit: cover; border-radius: 24px; }
-        .category-pill { display: inline-block; background: #f9ecf3; color: #ad5576; padding: 8px 12px; border-radius: 999px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
-        .product-name { font-family: 'Cormorant Garamond', serif; font-size: clamp(3rem, 5vw, 5rem); line-height: 1; margin: 16px 0 12px; }
-        .price-row { display: flex; align-items: center; gap: 12px; margin: 14px 0; }
-        .price { font-size: 2rem; font-weight: 700; }
-        .original { color: #947c87; text-decoration: line-through; font-size: 1.1rem; }
-        .desc { color: #5f4d56; line-height: 1.8; max-width: 560px; }
-        .swatches { display: flex; flex-wrap: wrap; gap: 12px; margin: 22px 0; }
-        .swatch { border: 1px solid #efdbe3; border-radius: 999px; padding: 10px 14px; font-size: 12px; }
-        .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
-        .primary, .secondary { padding: 16px 26px; border-radius: 999px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; }
-        .primary { background: #1f1b1c; color: white; border: none; }
-        .secondary { background: white; color: #1f1b1c; border: 1px solid #ead9df; }
-        .info-box { margin-top: 28px; padding: 20px 22px; background: #fffaf8; border: 1px solid #f0dfe7; border-radius: 18px; }
-        @media (max-width: 900px) { .detail-grid { grid-template-columns: 1fr; } .gallery { grid-template-columns: 1fr; } .thumbs { grid-template-columns: repeat(3, 1fr); } }
-      `}</style>
-
-      <div className="detail-shell">
-        <div className="detail-grid">
-          <div className="gallery">
-            <div className="thumbs">
-              {product.gallery.map((img) => (
-                <img key={img} src={img} alt={product.name} />
-              ))}
-            </div>
-            <img className="main-image" src={product.image} alt={product.name} />
-          </div>
-
-          <div>
-            <div className="category-pill">{product.category}</div>
-            <h1 className="product-name">{product.name}</h1>
-            <div className="price-row">
-              <span className="price">₹{product.price.toLocaleString("en-IN")}</span>
-              <span className="original">₹{product.originalPrice.toLocaleString("en-IN")}</span>
-            </div>
-
-            <p className="desc">{product.description}</p>
-
-            <div style={{ marginTop: 20, fontSize: 12, letterSpacing: 2, textTransform: "uppercase", color: "#8c6977" }}>
-              Finish: {product.material}
-            </div>
-
-            <div style={{ marginTop: 22 }}>
-              <div style={{ fontSize: 12, letterSpacing: 2, textTransform: "uppercase", color: "#8c6977" }}>Available shades</div>
-              <div className="swatches">
-                {product.colors.map((color) => (
-                  <span key={color} className="swatch">{color}</span>
-                ))}
-              </div>
-            </div>
-
-            <div className="cta-row">
-              <Link href="/cart" style={{ textDecoration: "none" }}><button className="primary">Add to bag</button></Link>
-              <button className="secondary">Add to wishlist</button>
-            </div>
-
-            <div className="info-box">
-              <strong>Styling notes:</strong> Pair with a pastel saree, minimal makeup, and soft curls for the perfect festive glow.
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
-
-export default ProductDetailPage;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export default function ProductDetailPage() {
+  const params = useParams<{ slug: string }>();
+  const product = jewelleryProducts.find((item) => item.slug === params.slug);
+  const { addToCart, wishlist, toggleWishlist } = useCartStore();
+  const [selectedImage, setSelectedImage] = useState(product?.image ?? "");
+  const [quantity, setQuantity] = useState(1);
+  const [added, setAdded] = useState(false);
+  if (!product) return <div className="product-missing"><h1>We couldn't find that piece.</h1><Link href="/listing">Explore the collection</Link></div>;
+  const isSaved = wishlist.some((item) => item.slug === product.slug);
+  const add = () => { for (let count = 0; count < quantity; count += 1) addToCart(product); setAdded(true); window.setTimeout(() => setAdded(false), 2200); };
+  return <div className="product-shell"><div className="breadcrumbs"><Link href="/">Home</Link><span>/</span><Link href="/listing">Shop</Link><span>/</span><span>{product.category}</span></div><div className="product-layout">
+    <div className="product-gallery"><div className="product-thumbnails">{product.gallery.map((image, index) => <button key={`${image}-${index}`} className={selectedImage === image ? "selected" : ""} onClick={() => setSelectedImage(image)} aria-label={`View product image ${index + 1}`}><img src={image} alt={`${product.name} view ${index + 1}`} /></button>)}</div><div className="product-main-image"><img src={selectedImage || product.image} alt={product.name} /><span className="detail-badge">{product.badge}</span></div></div>
+    <div className="product-info"><span className="eyebrow">{product.category} · AAROHI EDIT</span><h1>{product.name}</h1><div className="rating"><span>★★★★★</span> <small>Customer favourite</small></div><div className="price-line"><strong>₹{product.price.toLocaleString("en-IN")}</strong><del>₹{product.originalPrice.toLocaleString("en-IN")}</del><span>{Math.round((1 - product.price / product.originalPrice) * 100)}% off</span></div><p className="description">{product.description}</p><div className="product-material"><small>THE FINISH</small><span>{product.material}</span></div><div className="shade-section"><small>AVAILABLE SHADES</small><div className="shade-list">{product.colors.map((color) => <span key={color}>{color}</span>)}</div></div><div className="purchase-row"><div className="quantity-picker"><button onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="Decrease quantity"><Minus size={14} /></button><span>{quantity}</span><button onClick={() => setQuantity(quantity + 1)} aria-label="Increase quantity"><Plus size={14} /></button></div><button className="add-button" onClick={add}>{added ? "Added to your bag ✓" : "Add to bag · ₹" + (product.price * quantity).toLocaleString("en-IN")}</button><button className={`save-button ${isSaved ? "saved" : ""}`} onClick={() => toggleWishlist(product)} aria-label={isSaved ? "Remove from wishlist" : "Add to wishlist"}><Heart size={19} fill={isSaved ? "currentColor" : "none"} /></button></div>{added && <p className="added-message"><Link href="/cart">View your bag</Link> · Your piece is saved in your bag.</p>}<div className="delivery-card"><div><Truck size={17} /><span><b>Complimentary delivery</b><small>On orders over ₹2,500</small></span></div><div><ShieldCheck size={17} /><span><b>Easy 7-day returns</b><small>Shop with peace of mind</small></span></div></div><div className="styling-note"><small>A LITTLE STYLE NOTE</small><p>Pair it with your favourite outfit and make the moment yours. Keep away from water, perfume, and harsh chemicals to help preserve the finish.</p></div></div></div>
+    <style jsx>{`
+      .product-shell{max-width:1320px;margin:auto;padding:30px 28px 90px}.breadcrumbs{display:flex;gap:10px;font-size:10px;letter-spacing:.5px;color:#8b7d73;margin-bottom:25px}.breadcrumbs span:last-child{color:#342a24}.product-layout{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(30px,6vw,85px);align-items:start}.product-gallery{display:grid;grid-template-columns:76px 1fr;gap:15px}.product-thumbnails{display:grid;align-content:start;gap:10px}.product-thumbnails button{padding:0;border:1px solid #e9dfd4;background:#f1e9df;aspect-ratio:.8;overflow:hidden}.product-thumbnails button.selected{border:2px solid #986554}.product-thumbnails img,.product-main-image img{width:100%;height:100%;object-fit:cover}.product-main-image{position:relative;aspect-ratio:.83;background:#eee3d7}.detail-badge{position:absolute;top:15px;left:15px;background:#fbf8f4;padding:8px 11px;font-size:9px;letter-spacing:1px;text-transform:uppercase}.product-info{padding:15px 0}.eyebrow,.product-material small,.shade-section>small,.styling-note>small{font-size:9px;letter-spacing:1.8px;color:#986554}.product-info h1{font-size:clamp(3rem,5vw,5rem);line-height:.98;margin:16px 0 11px}.rating{display:flex;align-items:center;gap:10px;color:#a27949}.rating span{font-size:12px;letter-spacing:2px}.rating small{font-size:10px;color:#756b65}.price-line{display:flex;align-items:center;gap:13px;margin:21px 0}.price-line strong{font-size:22px;font-weight:500}.price-line del{font-size:13px;color:#95877e}.price-line>span{font-size:10px;letter-spacing:.6px;color:#986554;background:#efe5dc;padding:6px 8px}.description{font-size:13px;line-height:1.85;color:#685e57;max-width:530px}.product-material{display:grid;gap:6px;margin-top:22px}.product-material span{font-size:13px}.shade-section{margin-top:24px}.shade-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.shade-list span{padding:9px 12px;border:1px solid #e9dfd4;background:white;font-size:11px}.purchase-row{display:flex;gap:9px;margin-top:28px}.quantity-picker{display:flex;align-items:center;border:1px solid #e9dfd4;background:white}.quantity-picker button{width:35px;height:48px;border:0;background:none;display:grid;place-items:center}.quantity-picker>span{min-width:20px;text-align:center;font-size:12px}.add-button{flex:1;min-height:48px;border:0;background:#342a24;color:white;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:10px}.add-button:hover{background:#715348}.save-button{width:49px;display:grid;place-items:center;background:white;border:1px solid #e9dfd4;color:#342a24}.save-button.saved{color:#986554}.added-message{font-size:11px;color:#756b65}.added-message a{color:#986554;text-decoration:underline}.delivery-card{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:17px;margin-top:25px;background:#f3eee8}.delivery-card>div{display:flex;gap:10px;align-items:flex-start;color:#986554}.delivery-card span{display:grid;gap:4px}.delivery-card b{font-size:10px;color:#342a24;font-weight:500}.delivery-card small{font-size:9px;color:#756b65}.styling-note{border-top:1px solid #e9dfd4;margin-top:24px;padding-top:18px}.styling-note p{font-size:11px;line-height:1.8;color:#756b65}.product-missing{min-height:55vh;display:grid;align-content:center;justify-items:center;gap:18px}.product-missing h1{font-size:3rem}.product-missing a{color:#986554;text-decoration:underline}
+      @media(max-width:850px){.product-layout{grid-template-columns:1fr 1fr;gap:25px}.product-gallery{grid-template-columns:60px 1fr}.delivery-card{grid-template-columns:1fr}}@media(max-width:620px){.product-shell{padding:22px 16px 65px}.product-layout{grid-template-columns:1fr}.product-gallery{grid-template-columns:1fr;gap:10px}.product-thumbnails{grid-row:2;grid-template-columns:repeat(4,1fr)}.product-thumbnails button{aspect-ratio:1}.product-info{padding-top:5px}.product-info h1{font-size:3.6rem}.delivery-card{grid-template-columns:1fr 1fr;padding:13px}.delivery-card b{font-size:9px}}
+    `}</style>
+  </div>;
+}

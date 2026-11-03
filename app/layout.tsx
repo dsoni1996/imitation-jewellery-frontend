@@ -1,21 +1,14 @@
 import type { Metadata } from "next";
-import Navbar from "../components/common/Navbar";
-import Footer from "../components/common/Footer";
+import Navbar from "@/components/common/Navbar";
+import Footer from "@/components/common/Footer";
+import { CartProvider } from "@/context/CartContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Aarohi Style | Imitation Jewellery",
-  description: "Elegant imitation jewellery for daily glam, festive moments, and statement looks.",
+  title: "Aarohi Style | Imitation Jewellery for Every Moment",
+  description: "Discover thoughtfully chosen imitation jewellery for everyday sparkle, festive moments, and gifts. Find your new favourite piece at Aarohi Style.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <body>
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
-      </body>
-    </html>
-  );
+  return <html lang="en"><body><CartProvider><Navbar /><main>{children}</main><Footer /></CartProvider></body></html>;
 }

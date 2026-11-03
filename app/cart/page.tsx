@@ -1,98 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { ArrowRight, Minus, Plus, Trash2 } from "lucide-react";
+import { useCartStore } from "@/context/CartContext";
 
-const cartItems = [
-  { id: 1, name: "Pearl Drop Set", price: 1999, qty: 1, image: "https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=900&q=80" },
-  { id: 2, name: "Rose Gold Dots", price: 2499, qty: 1, image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=900&q=80" },
-];
+const money = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
-const CartPage = () => {
-  const [items, setItems] = useState(cartItems);
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.qty, 0);
-  const shipping = subtotal > 2500 ? 0 : 149;
-  const total = subtotal + shipping;
-
-  const removeItem = (id: number) => {
-    setItems((current) => current.filter((item) => item.id !== id));
-  };
-
-  return (
-    <>
-      <style>{`
-        .cart-shell { max-width: 1320px; margin: 0 auto; padding: 42px 20px 100px; }
-        .cart-grid { display: grid; grid-template-columns: 1.5fr 0.75fr; gap: 30px; }
-        .items { display: grid; gap: 18px; }
-        .item { display: flex; gap: 18px; background: #fff; border: 1px solid #f2dee8; border-radius: 18px; padding: 16px; }
-        .item img { width: 120px; height: 120px; object-fit: cover; border-radius: 12px; }
-        .summary { background: #fff; border: 1px solid #f2dee8; border-radius: 18px; padding: 22px; }
-        .summary-row { display: flex; justify-content: space-between; margin: 16px 0; }
-        .checkout { width: 100%; background: #1f1b1c; color: white; border: none; border-radius: 999px; padding: 16px; letter-spacing: 2px; text-transform: uppercase; margin-top: 18px; }
-        .mini-features { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
-        .mini-feature { display: flex; align-items: center; gap: 8px; background: #fffaf8; border: 1px solid #f2dee8; border-radius: 999px; padding: 10px 12px; font-size: 12px; }
-        @media (max-width: 920px) { .cart-grid { grid-template-columns: 1fr; } }
-      `}</style>
-
-      <div className="cart-shell">
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: "#b76a86" }}>Your bag</div>
-          <h1 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "clamp(2.7rem, 5vw, 4.2rem)" }}>Shopping cart</h1>
-        </div>
-
-        <div className="cart-grid">
-          <div className="items">
-            {items.length ? items.map((item) => (
-              <div key={item.id} className="item">
-                <img src={item.image} alt={item.name} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "2rem" }}>{item.name}</div>
-                  <div style={{ color: "#7a5e6a", marginTop: 6 }}>Qty: {item.qty}</div>
-                  <div style={{ marginTop: 12, fontWeight: 700 }}>₹{item.price.toLocaleString("en-IN")}</div>
-                </div>
-                <button onClick={() => removeItem(item.id)} style={{ border: "1px solid #f0dfe7", background: "white", borderRadius: 999, padding: "8px 12px" }}>Remove</button>
-              </div>
-            )) : <div className="item" style={{ justifyContent: "center" }}>Your cart is empty.</div>}
-          </div>
-
-          <aside className="summary">
-            <h3 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "2.6rem", marginBottom: 18 }}>Order summary</h3>
-            <div className="summary-row"><span>Subtotal</span><span>₹{subtotal.toLocaleString("en-IN")}</span></div>
-            <div className="summary-row"><span>Shipping</span><span>{shipping === 0 ? "Free" : `₹${shipping}`}</span></div>
-            <div className="summary-row"><span>Discount</span><span>₹0</span></div>
-            <div className="summary-row" style={{ fontWeight: 700, fontSize: 18 }}><span>Total</span><span>₹{total.toLocaleString("en-IN")}</span></div>
-            <Link href="/checkout" style={{ textDecoration: "none" }}><button className="checkout">Proceed to checkout</button></Link>
-          </aside>
-        </div>
-      </div>
-    </>
-  );
-};
-
-export default CartPage;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export default function CartPage() {
+  const { cart, subtotal, updateQty, removeFromCart } = useCartStore();
+  const shipping = subtotal === 0 || subtotal >= 2500 ? 0 : 149;
+  return <div className="cart-shell">
+    <div className="cart-heading"><span className="eyebrow">YOUR AAROHI BAG</span><h1>Your picks, <em>together.</em></h1><p>{cart.length ? `${cart.reduce((sum, item) => sum + item.quantity, 0)} lovely piece${cart.reduce((sum, item) => sum + item.quantity, 0) === 1 ? "" : "s"} in your bag` : "A little sparkle is waiting to find you."}</p></div>
+    {!cart.length ? <div className="empty-cart"><span className="empty-sparkle">✳</span><h2>Your bag is taking a breather.</h2><p>Discover something lovely and it will be waiting here.</p><Link className="cart-button" href="/listing">Explore the collection <ArrowRight size={16} /></Link></div> : <div className="cart-layout">
+      <div className="cart-items">{cart.map((item) => <article className="cart-item" key={item.slug}><Link href={`/product/${item.slug}`} className="cart-image"><img src={item.image} alt={item.name} /></Link><div className="cart-details"><span className="cart-category">{item.category}</span><Link href={`/product/${item.slug}`}><h2>{item.name}</h2></Link><p>{item.material}</p><strong>{money(item.price)}</strong><div className="quantity-control"><button aria-label="Decrease quantity" onClick={() => updateQty(item.slug, item.quantity - 1)}><Minus size={13} /></button><span>{item.quantity}</span><button aria-label="Increase quantity" onClick={() => updateQty(item.slug, item.quantity + 1)}><Plus size={13} /></button></div></div><button className="remove-item" aria-label={`Remove ${item.name}`} onClick={() => removeFromCart(item.slug)}><Trash2 size={16} /><span>Remove</span></button></article>)}</div>
+      <aside className="order-summary"><span className="eyebrow">THE DETAILS</span><h2>Order summary</h2><div className="summary-line"><span>Subtotal</span><span>{money(subtotal)}</span></div><div className="summary-line"><span>Shipping</span><span>{shipping ? money(shipping) : "Complimentary"}</span></div>{subtotal > 0 && subtotal < 2500 && <p className="shipping-note">Add {money(2500 - subtotal)} more for complimentary shipping.</p>}<div className="summary-total"><span>Total</span><strong>{money(subtotal + shipping)}</strong></div><Link className="cart-button checkout-button" href="/checkout">Continue to checkout <ArrowRight size={16} /></Link><p className="secure-note">Secure checkout · Easy 7-day returns</p></aside>
+    </div>}
+    <style jsx>{`
+      .cart-shell{max-width:1280px;margin:0 auto;padding:68px 28px 100px;min-height:65vh}.cart-heading{text-align:center;margin-bottom:44px}.eyebrow{font-size:10px;letter-spacing:2px;color:#986554}.cart-heading h1{font-size:clamp(3rem,6vw,5rem);line-height:1;margin:13px 0}.cart-heading h1 em{color:#986554}.cart-heading p{color:#756b65;font-size:13px}.empty-cart{max-width:650px;margin:auto;padding:64px 24px;text-align:center;background:white;border:1px solid #e9dfd4}.empty-sparkle{font-size:30px;color:#bd9873}.empty-cart h2,.order-summary h2{font-size:2.5rem;margin:14px 0 8px}.empty-cart p{font-size:13px;color:#756b65;margin-bottom:24px}.cart-button{display:inline-flex;align-items:center;justify-content:center;gap:12px;background:#342a24;color:white;padding:15px 20px;font-size:10px;letter-spacing:1.2px;text-transform:uppercase}.cart-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(290px,.72fr);gap:36px;align-items:start}.cart-items{display:grid;gap:14px}.cart-item{display:flex;gap:20px;position:relative;padding:16px;background:white;border:1px solid #e9dfd4}.cart-image{width:145px;height:165px;flex:none;background:#f1e9df}.cart-image img{width:100%;height:100%;object-fit:cover}.cart-details{padding:6px 0;flex:1}.cart-category{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#986554}.cart-details h2{font-size:2rem;font-weight:500;margin:5px 0}.cart-details p{font-size:12px;color:#756b65;margin:0 0 12px}.cart-details>strong{font-size:14px}.quantity-control{display:flex;align-items:center;gap:15px;margin-top:15px}.quantity-control button{display:grid;place-items:center;width:28px;height:28px;background:white;border:1px solid #e9dfd4;color:#342a24}.quantity-control span{font-size:12px}.remove-item{align-self:flex-start;border:0;background:none;color:#8c7c72;display:flex;align-items:center;gap:6px;font-size:10px;padding:6px}.order-summary{position:sticky;top:130px;padding:25px;background:white;border:1px solid #e9dfd4}.order-summary h2{font-size:2.1rem;margin:7px 0 24px}.summary-line,.summary-total{display:flex;justify-content:space-between;gap:15px;padding:13px 0;font-size:13px;border-bottom:1px solid #eee7df}.shipping-note{font-size:11px;color:#986554;line-height:1.5}.summary-total{border:0;padding:19px 0;font-size:14px}.summary-total strong{font-size:18px}.checkout-button{width:100%}.secure-note{text-align:center;font-size:10px;color:#756b65;margin:16px 0 0}
+      @media(max-width:850px){.cart-layout{grid-template-columns:1fr}.order-summary{position:static}}@media(max-width:560px){.cart-shell{padding:48px 16px 70px}.cart-item{gap:12px;padding:10px}.cart-image{width:100px;height:125px}.cart-details h2{font-size:1.6rem}.cart-details p{font-size:10px}.remove-item span{display:none}.cart-heading{margin-bottom:28px}.order-summary{padding:20px}}
+    `}</style>
+  </div>;
+}
