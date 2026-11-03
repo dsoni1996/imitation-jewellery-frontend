@@ -1,179 +1,65 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Heart, Search, SlidersHorizontal } from "lucide-react";
 import { jewelleryProducts } from "@/lib/jewelleryData";
 
-const categories = ["All", "Rings", "Earrings", "Necklaces", "Bangles", "Pendants", "Sets", "Gift Sets"];
+const categories = ["All", "Rings", "Earrings", "Necklaces", "Bangles", "Pendants", "Sets", "Headwear"];
 
-const ListingPage = () => {
+export default function ListingPage() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("featured");
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const category = params.get("category");
+    const query = params.get("search") || "";
+    if (category && categories.some((item) => item.toLowerCase() === category.toLowerCase())) {
+      setSelectedCategory(categories.find((item) => item.toLowerCase() === category.toLowerCase()) || "All");
+    }
+    setSearch(query);
+  }, []);
+
   const filteredProducts = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    let items = jewelleryProducts.filter((product) => {
-      const matchesCategory = selectedCategory === "All" || product.category === selectedCategory || (selectedCategory === "Gift Sets" && product.category === "Sets");
-      const matchesSearch = !q || [product.name, product.category, product.material, product.description].join(" ").toLowerCase().includes(q);
-      return matchesCategory && matchesSearch;
+    const query = search.trim().toLowerCase();
+    let products = jewelleryProducts.filter((product) => {
+      const categoryMatch = selectedCategory === "All" || product.category.toLowerCase() === selectedCategory.toLowerCase();
+      const queryMatch = !query || [product.name, product.category, product.material, product.description].join(" ").toLowerCase().includes(query);
+      return categoryMatch && queryMatch;
     });
-
-    if (sort === "low-to-high") items = [...items].sort((a, b) => a.price - b.price);
-    if (sort === "high-to-low") items = [...items].sort((a, b) => b.price - a.price);
-    if (sort === "popular") items = [...items].sort((a, b) => Number(b.badge === "Best Seller") - Number(a.badge === "Best Seller"));
-
-    return items;
+    if (sort === "low") products = [...products].sort((a, b) => a.price - b.price);
+    if (sort === "high") products = [...products].sort((a, b) => b.price - a.price);
+    if (sort === "popular") products = [...products].sort((a, b) => Number(b.badge === "Best Seller") - Number(a.badge === "Best Seller"));
+    return products;
   }, [selectedCategory, search, sort]);
 
   return (
-    <>
-      <style>{`
-        .listing-shell { max-width: 1320px; margin: 0 auto; padding: 42px 20px 90px; }
-        .page-header { display: flex; justify-content: space-between; align-items: end; gap: 18px; flex-wrap: wrap; margin-bottom: 28px; }
-        .page-header h1 { font-size: clamp(2.7rem, 5vw, 4.5rem); }
-        .page-header p { color: #735f67; }
-        .toolbar { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin: 28px 0 32px; }
-        .filter-row { display: flex; flex-wrap: wrap; gap: 12px; }
-        .chip { border: 1px solid #f0dfe7; background: white; border-radius: 999px; padding: 10px 16px; font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; cursor: pointer; }
-        .chip.active { background: #1f1b1c; color: white; border-color: #1f1b1c; }
-        .search-box { display: flex; align-items: center; gap: 10px; background: white; border: 1px solid #f0dfe7; border-radius: 999px; padding: 10px 16px; min-width: min(380px, 90vw); }
-        .search-box input { border: none; outline: none; background: transparent; width: 100%; font: inherit; }
-        .sort-select { border: 1px solid #f0dfe7; background: white; border-radius: 999px; padding: 10px 16px; font: inherit; }
-        .product-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px; }
-        .empty-state { background: white; border: 1px solid #f2dee8; border-radius: 24px; padding: 40px; text-align: center; }
-        @media (max-width: 900px) { .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-        @media (max-width: 620px) { .product-grid { grid-template-columns: 1fr; } .toolbar { align-items: flex-start; flex-direction: column; } }
-      `}</style>
-
-      <div className="listing-shell">
-        <div className="page-header">
-          <div>
-            <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: "#b76a86" }}>Aarohi Style</div>
-            <h1>Jewellery for every vibe</h1>
-          </div>
-          <p>Handpicked pieces for festive sparkle, daily glam, and gifting moments.</p>
+    <div className="shop-shell">
+      <header className="shop-intro">
+        <span className="eyebrow">AAROHI STYLE · IMITATION JEWELLERY</span>
+        <h1>Find your <em>everyday sparkle.</em></h1>
+        <p>Thoughtful finishing touches for everyday plans and special occasions.</p>
+      </header>
+      <div className="shop-toolbar">
+        <div className="category-filters" aria-label="Filter by category">
+          {categories.map((category) => <button key={category} className={selectedCategory === category ? "filter-chip active" : "filter-chip"} onClick={() => setSelectedCategory(category)}>{category}</button>)}
         </div>
-
-        <div className="toolbar">
-          <div className="filter-row">
-            {categories.map((category) => (
-              <button key={category} className={`chip ${selectedCategory === category ? "active" : ""}`} onClick={() => setSelectedCategory(category)}>
-                {category}
-              </button>
-            ))}
-          </div>
-
-          <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-            <div className="search-box">
-              <Search size={16} color="#7c5d66" />
-              <input aria-label="Search jewellery" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search jewellery" />
-            </div>
-            <select className="sort-select" value={sort} onChange={(e) => setSort(e.target.value)}>
-              <option value="featured">Featured</option>
-              <option value="low-to-high">Price: Low to High</option>
-              <option value="high-to-low">Price: High to Low</option>
-              <option value="popular">Most Popular</option>
-            </select>
-          </div>
+        <div className="shop-controls">
+          <label className="search-control"><Search size={16} /><input aria-label="Search jewellery" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search jewellery" /></label>
+          <label className="sort-control"><SlidersHorizontal size={15} /><select aria-label="Sort products" value={sort} onChange={(event) => setSort(event.target.value)}><option value="featured">Featured</option><option value="popular">Most loved</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option></select></label>
         </div>
-
-        {filteredProducts.length ? (
-          <div className="product-grid">
-            {filteredProducts.map((product) => (
-              <Link key={product.slug} href={`/product/${product.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
-                <article style={{ background: "#fff", border: "1px solid #f4e4eb", borderRadius: 20, overflow: "hidden", boxShadow: "0 18px 30px rgba(74,44,52,0.06)" }}>
-                  <div style={{ position: "relative" }}>
-                    <img src={product.image} alt={product.name} style={{ width: "100%", height: 320, objectFit: "cover", display: "block" }} />
-                    <span style={{ position: "absolute", top: 15, left: 15, background: "rgba(26,16,21,0.8)", color: "#f4dca6", padding: "7px 10px", borderRadius: 999, fontSize: 9, letterSpacing: 2, textTransform: "uppercase" }}>{product.badge}</span>
-                  </div>
-                  <div style={{ padding: 18 }}>
-                    <div style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "2.1rem", marginBottom: 8 }}>{product.name}</div>
-                    <div style={{ color: "#8b6c7a", fontSize: 11, letterSpacing: 2, textTransform: "uppercase" }}>{product.category}</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 14 }}>
-                      <span style={{ fontWeight: 700 }}>₹{product.price.toLocaleString("en-IN")}</span>
-                      <span style={{ color: "#9a8a90", textDecoration: "line-through", fontSize: 13 }}>₹{product.originalPrice.toLocaleString("en-IN")}</span>
-                    </div>
-                  </div>
-                </article>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="empty-state">
-            <h3 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "2.5rem", marginBottom: 12 }}>No matching pieces found</h3>
-            <p style={{ color: "#6f5863" }}>Try a different category or search term for a new statement look.</p>
-          </div>
-        )}
       </div>
-    </>
+      <div className="results-line">{filteredProducts.length} {filteredProducts.length === 1 ? "piece" : "pieces"} to love</div>
+      {filteredProducts.length ? <div className="catalog-grid">{filteredProducts.map((product) => <Link className="catalog-card" href={`/product/${product.slug}`} key={product.slug}>
+        <div className="catalog-image"><img src={product.image} alt={product.name} loading="lazy" /><span className="catalog-badge">{product.badge}</span><span className="catalog-heart" aria-hidden="true"><Heart size={17} /></span></div>
+        <div className="catalog-info"><span>{product.category}</span><h2>{product.name}</h2><div className="catalog-price"><strong>₹{product.price.toLocaleString("en-IN")}</strong><del>₹{product.originalPrice.toLocaleString("en-IN")}</del></div></div>
+      </Link>)}</div> : <div className="no-results"><h2>No pieces found just yet.</h2><p>Try another search or choose a different category.</p><button className="reset-button" onClick={() => { setSelectedCategory("All"); setSearch(""); }}>Show all jewellery</button></div>}
+      <style jsx>{`
+        .shop-shell{max-width:1320px;margin:auto;padding:62px 26px 90px}.shop-intro{text-align:center;padding:12px 0 34px}.eyebrow{font-size:10px;letter-spacing:2px;color:#986554}.shop-intro h1{font-size:clamp(3rem,6vw,5rem);line-height:1;margin:13px 0}.shop-intro h1 em{color:#986554}.shop-intro p{color:#756b65;font-size:13px}.shop-toolbar{display:grid;gap:18px;border-top:1px solid #e9dfd4;border-bottom:1px solid #e9dfd4;padding:18px 0}.category-filters{display:flex;gap:8px;flex-wrap:wrap}.filter-chip{background:#fff;border:1px solid #e9dfd4;color:#514740;border-radius:999px;padding:9px 14px;font-size:10px;letter-spacing:.8px;cursor:pointer}.filter-chip.active{background:#342a24;border-color:#342a24;color:#fff}.shop-controls{display:flex;justify-content:space-between;gap:12px}.search-control,.sort-control{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid #e9dfd4;padding:10px 13px;color:#806c5d}.search-control{flex:1;max-width:380px}.search-control input,.sort-control select{min-width:0;width:100%;border:0;outline:0;background:transparent;color:#342a24;font:inherit;font-size:12px}.sort-control select{cursor:pointer}.results-line{font-size:11px;color:#756b65;margin:22px 0 15px}.catalog-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}.catalog-card{min-width:0}.catalog-image{position:relative;overflow:hidden;background:#eee3d7;aspect-ratio:.78}.catalog-image img{width:100%;height:100%;object-fit:cover;transition:transform .45s}.catalog-card:hover .catalog-image img{transform:scale(1.04)}.catalog-badge{position:absolute;top:12px;left:12px;background:#fbf8f4;padding:7px 9px;font-size:9px;letter-spacing:1px;text-transform:uppercase}.catalog-heart{position:absolute;top:10px;right:10px;background:rgba(251,248,244,.9);width:34px;height:34px;border-radius:50%;display:grid;place-items:center}.catalog-info{padding:12px 0}.catalog-info>span{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#986554}.catalog-info h2{font-size:1.8rem;line-height:1.1;margin:5px 0 8px}.catalog-price{display:flex;align-items:center;gap:10px;font-size:13px}.catalog-price del{font-size:11px;color:#95877e}.no-results{text-align:center;background:#fff;border:1px solid #e9dfd4;padding:48px 20px;margin-top:12px}.no-results h2{font-size:2.4rem}.no-results p{color:#756b65}.reset-button{background:#342a24;border:0;color:#fff;padding:13px 17px;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
+        @media(max-width:950px){.catalog-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:650px){.shop-shell{padding:42px 16px 70px}.shop-intro{padding-bottom:22px}.shop-toolbar{padding:14px 0}.category-filters{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}.filter-chip{flex:none}.shop-controls{flex-direction:column}.search-control{max-width:none}.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.catalog-info h2{font-size:1.5rem}.catalog-image{aspect-ratio:.75}.catalog-badge{font-size:8px;top:8px;left:8px}.catalog-heart{width:30px;height:30px;top:7px;right:7px}}
+      `}</style>
+    </div>
   );
-};
-
-export default ListingPage;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}

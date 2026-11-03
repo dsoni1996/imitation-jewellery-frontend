@@ -1,50 +1,23 @@
-"use client";
+# Aarohi Style — imitation jewellery storefront
 
-import { useEffect, useState } from "react";
-import HeroCarousel from "../components/home/HeroCarousel";
-import Collection from "../components/home/Collection";
-import Categories from "../components/home/Categories";
-import TrendingJewellerys from "../components/home/TrendingJewellerys";
-import NewArrival from "../components/home/NewArrival";
-import NewsletterBanner from "../components/home/NewsletterBanner";
+A small Next.js storefront for browsing the sample catalogue, searching/filtering products, and managing a cart and wishlist in the customer's browser. The current checkout hands the order details to the store through WhatsApp; it does not collect card details or charge a customer online.
 
-const SECTION_MAP = {
-  hero_carousel: HeroCarousel,
-  collection_grid: Collection,
-  categories: Categories,
-  trending: TrendingJewellerys,
-  new_arrivals: NewArrival,
-  newsletter: NewsletterBanner,
-};
+## Run locally
 
-const defaultSections = [
-  { id: "hero", type: "hero_carousel", settings: {}, products: [] },
-  { id: "collections", type: "collection_grid", settings: {}, products: [] },
-  { id: "categories", type: "categories", settings: {}, products: [] },
-  { id: "trending", type: "trending", settings: {}, products: [] },
-  { id: "new_arrivals", type: "new_arrivals", settings: {}, products: [] },
-  { id: "newsletter", type: "newsletter", settings: {}, products: [] },
-];
+1. Install Node.js 20 or newer.
+2. Run `npm install`.
+3. Copy `.env.example` to `.env.local` and replace `NEXT_PUBLIC_WHATSAPP_NUMBER` with the store's WhatsApp number, including country code and digits only (India example: `919876543210`).
+4. Run `npm run dev`, then open `http://localhost:3000`.
+5. Check the production build with `npm run build` and serve it using `npm start`.
 
-export default function Home() {
-  const [sections, setSections] = useState<any[] | null>(null);
+Deploy the Next.js app to a Node-compatible host (for example Vercel). Add the same environment variable in the hosting provider's project settings and redeploy after changing it. Never add private API keys to a `NEXT_PUBLIC_` variable.
 
-  useEffect(() => {
-    setSections(defaultSections);
-  }, []);
+## Before taking real orders
 
-  if (!sections) {
-    return <div style={{ minHeight: "60vh", background: "#fffaf6" }} />;
-  }
+- Replace the sample products, prices, descriptions, and externally hosted sample images in `lib/jewelleryData.js` with your actual inventory and product photography.
+- Set and test the correct store WhatsApp number. Checkout opens a prefilled message; the customer must send it and the store must confirm stock, delivery charges, and the order.
+- Choose and clearly publish your actual shipping, returns/refunds, privacy, and terms policies, plus business contact details. Remove any promise that does not match your operations.
+- The current checkout is an order-request/contact flow, not a payment gateway, inventory reservation, automated order database, or shipping integration. Add a trusted payment provider and server-side order handling before accepting online prepayments or needing automated fulfilment.
+- Verify the deployed site, mobile layouts, product photos, checkout message, and contact channel before sharing it with customers.
 
-  return (
-    <>
-      {sections.map((section) => {
-        const type = section.type as keyof typeof SECTION_MAP;
-        const Component = SECTION_MAP[type];
-        if (!Component) return null;
-        return <Component key={section.id} settings={section.settings || {}} products={section.products || []} />;
-      })}
-    </>
-  );
-}
+Cart and wishlist are stored in the customer's browser (`localStorage`); they are not shared across devices and do not create an order until the customer contacts the store.
